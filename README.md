@@ -10,6 +10,10 @@ npx sequelize-cli migration:generate --name create-products
 npx sequelize-cli model:generate --name Product --attributes title:string,price:float
 ```
 
+### Create databse
+```bash
+node create-database.js
+```
 ### Migrate
 ```bash
 npx sequelize-cli db:migrate
