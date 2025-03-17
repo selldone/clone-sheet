@@ -287,16 +287,7 @@ module.exports = {
       }
     });
 
-    // Add foreign keys
-    await queryInterface.addConstraint("shops", {
-      fields: ["user_id"],
-      type: "foreign key",
-      references: {
-        table: "users",
-        field: "id",
-      },
-      onDelete: "CASCADE"
-    });
+
 
 
     // Add indexes

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Selldone API Connector</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -15,12 +15,10 @@
         <p class="text-sm text-gray-500">
             To generate your access token, click the link below, complete the process, and then copy the token.
         </p>
-        <a
-                href="https://selldone.com/auth/erp?scopes[]=selldone:identification&scopes[]=backoffice:shop:read&scopes[]=backoffice:order:read&scopes[]=backoffice:order:write&scopes[]=backoffice:product:read&scopes[]=backoffice:category:read"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="block mt-2 text-blue-600 hover:underline"
-        >
+        <a id="createTokenLink"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="block mt-2 text-blue-600 hover:underline">
             Create Access Token
         </a>
     </div>
@@ -29,46 +27,44 @@
     <div class="mt-6 space-y-4">
         <div>
             <label class="block text-sm text-gray-500 mb-1">Enter Bearer Token:</label>
-            <input
-                    id="tokenInput"
-                    type="text"
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Paste your Bearer token here..."
-            />
+            <input id="tokenInput" type="text"
+                   class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="Paste your Bearer token here...">
         </div>
-
         <div>
             <label class="block text-sm text-gray-500 mb-1">Enter Shop ID:</label>
-            <input
-                    id="shopIdInput"
-                    type="text"
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter Shop ID here..."
-            />
+            <input id="shopIdInput" type="text"
+                   class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="Enter Shop ID here...">
         </div>
-
-        <button
-                id="connectButton"
-                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition"
-        >
+        <button id="connectButton"
+                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
             Save & Fetch Data
         </button>
-
         <p id="statusMessage" class="text-sm text-gray-600 mt-2 text-center"></p>
     </div>
 
     <!-- ✅ Data Synchronization Section -->
     <div class="mt-8 border-t pt-6">
         <h2 class="text-lg font-semibold text-gray-700 text-center">Data Synchronization</h2>
-
-        <button
-                id="fetchProductsButton"
-                class="w-full mt-4 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition"
-        >
+        <button id="fetchProductsButton"
+                class="w-full mt-4 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition">
             Sync Categories & Fetch Products
         </button>
+        <p id="categoriesStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
+        <p id="productsStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
+        <p id="customersStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
 
-        <p id="productsStatusMessage" class="text-sm text-gray-600 mt-2 text-center"></p>
+    </div>
+
+    <!-- ✅ Clear Database Section -->
+    <div class="mt-8 border-t pt-6">
+        <h2 class="text-lg font-semibold text-gray-700 text-center">Admin Actions</h2>
+        <button id="clearDatabaseButton"
+                class="w-full mt-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition">
+            Clear All Data
+        </button>
+        <p id="clearStatusMessage" class="text-sm text-gray-600 mt-2 text-center"></p>
     </div>
 
     <!-- ✅ NocoDB Setup Section -->
@@ -78,74 +74,158 @@
             Use the following SQL connection details in NocoDB:
         </p>
         <div class="mt-2 bg-gray-100 p-2 rounded text-sm font-mono text-blue-600">
-            SQL Host: host.docker.internal<br />
-            SQL Port: <%= DB_CONFIG.port %><br />
-            Database: <%= DB_CONFIG.database %><br />
+            SQL Host: host.docker.internal<br/>
+            SQL Port: <%= DB_CONFIG.port %><br/>
+            Database: <%= DB_CONFIG.database %><br/>
+            Example SQL Address: host.docker.internal:<%= DB_CONFIG.port %>/<%= DB_CONFIG.database %>
         </div>
     </div>
 </div>
 
 <script>
+    // Add this to your script section
+    let eventSource;
+
+    function setupEventSource() {
+        // Close any existing connection
+        if (eventSource) {
+            eventSource.close();
+        }
+
+        // Connect to SSE endpoint
+        eventSource = new EventSource('/progress/stream');
+
+        // Handle incoming events
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            // Format the progress display
+            const progressText = data.progress < 100 ? `[${data.progress}%] ` : '';
+
+            let statusMessage;
+            // Select the appropriate status element based on data type
+            if (data.type === 'categories') {
+                statusMessage = document.getElementById("categoriesStatusMessage");
+                statusMessage.textContent = `📁 Categories: ${progressText}${data.message}`;
+            } else if (data.type === 'products') {
+                statusMessage = document.getElementById("productsStatusMessage");
+                statusMessage.textContent = `📦 Products: ${progressText}${data.message}`
+            } else if (data.type === 'customers') {
+                statusMessage = document.getElementById("customersStatusMessage");
+                statusMessage.textContent = `👥 Customers: ${progressText}${data.message}`
+            } else {
+                return;
+            }
+
+            // Add visual indicator
+            if (data.progress < 100) {
+                statusMessage.classList.add('animate-pulse');
+            } else {
+                statusMessage.classList.remove('animate-pulse');
+            }
+        };
+
+        eventSource.onerror = function () {
+            console.log("EventSource disconnected");
+            eventSource.close();
+        };
+    }
+
+    // Setup SSE when page loads
+    document.addEventListener('DOMContentLoaded', setupEventSource);
+
+    // Update the fetch products button event listener
+    document.getElementById("fetchProductsButton").addEventListener("click", async function () {
+        const categoriesStatus = document.getElementById("categoriesStatusMessage");
+        const productsStatus = document.getElementById("productsStatusMessage");
+        const customersStatus = document.getElementById("customersStatusMessage");
+
+        // Clear previous messages
+        categoriesStatus.textContent = "📁 Categories: Starting sync...";
+        productsStatus.textContent = "📦 Products: Waiting for categories to complete...";
+        customersStatus.textContent = "👥 Customers: Waiting for products to complete...";
+
+        try {
+            // First fetch categories
+            let categoryResponse = await fetch("/categories/fetch-categories", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"}
+            });
+
+
+            // After categories are done, start products
+            productsStatus.textContent = "📦 Products: Starting sync...";
+
+            let productResponse = await fetch("/products/fetch-products", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"}
+            });
+
+            // Fetch customers:
+            customersStatus.textContent = "👥 Customers: Starting sync...";
+            let customerResponse = await fetch("/customers/fetch-customers", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"}
+            });
+
+        } catch (error) {
+          //  categoriesStatus.textContent = "❌ Error syncing data.";
+          //  productsStatus.textContent = "❌ Error syncing data.";
+          //  customersStatus.textContent = "❌ Error syncing data.";
+            console.error("Error:", error);
+        }
+    });
+
+    // Save Token, Fetch User & Shop Info
     document.getElementById("connectButton").addEventListener("click", async function () {
         const tokenInput = document.getElementById("tokenInput").value.trim();
         const shopIdInput = document.getElementById("shopIdInput").value.trim();
         const statusMessage = document.getElementById("statusMessage");
 
-        // ✅ Ensure Token is Entered
         if (!tokenInput) {
             statusMessage.textContent = "❌ Please enter a token.";
             return;
         }
-
-        // ✅ Ensure "Bearer " Prefix on Token
+        // Ensure "Bearer " prefix on token
         let token = tokenInput.startsWith("Bearer ") ? tokenInput : `Bearer ${tokenInput}`;
 
         try {
-            // ✅ Step 1: Save Token
             statusMessage.textContent = "🔄 Saving Token...";
             let tokenResponse = await fetch("/auth/set-token", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({token})
             });
             let tokenResult = await tokenResponse.json();
-
             if (!tokenResult.success) {
                 statusMessage.textContent = "❌ Failed to save token.";
                 return;
             }
 
-            // ✅ Step 2: Fetch User Info (Sending token in body)
             statusMessage.textContent = "🔄 Fetching User Info...";
             let userResponse = await fetch("/user/fetch-user", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({token})
             });
-
             let userResult = await userResponse.json();
-
             if (!userResult.success) {
                 statusMessage.textContent = `❌ Failed to fetch user info: ${userResult.message}`;
                 return;
             }
 
-            // ✅ Step 3: Check Shop ID
             if (!shopIdInput) {
                 statusMessage.textContent = "⚠️ User data saved! Please enter a Shop ID.";
                 return;
             }
 
-            // ✅ Step 4: Fetch Shop Info (Sending shop_id & token)
             statusMessage.textContent = "🔄 Fetching Shop Info...";
             let shopResponse = await fetch("/shop/fetch-shop", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ shop_id: shopIdInput, token })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({shop_id: shopIdInput, token})
             });
-
             let shopResult = await shopResponse.json();
-
             if (shopResult.success) {
                 statusMessage.textContent = "✅ Shop data saved successfully!";
             } else {
@@ -157,44 +237,53 @@
         }
     });
 
-    document.getElementById("fetchProductsButton").addEventListener("click", async function () {
-        const statusMessage = document.getElementById("productsStatusMessage");
-        statusMessage.textContent = "🔄 Syncing categories first...";
 
+    // Clear (truncate) all tables in database (Admin action)
+    document.getElementById("clearDatabaseButton").addEventListener("click", async function () {
+        const clearStatus = document.getElementById("clearStatusMessage");
+        if (!confirm("⚠️ This will delete all data in products, shops, and categories. Are you sure?")) {
+            return;
+        }
+        clearStatus.textContent = "🔄 Clearing database...";
         try {
-            // ✅ Step 1: Sync Categories
-            let categoryResponse = await fetch("/categories/fetch-categories", {
+            let response = await fetch("/admin/clear-database", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: {"Content-Type": "application/json"}
             });
-
-            let categoryResult = await categoryResponse.json();
-
-            if (!categoryResult.success) {
-                statusMessage.textContent = `❌ Failed to fetch categories: ${categoryResult.message}`;
-                return;
-            }
-
-            statusMessage.textContent = "✅ Categories synced! Now fetching products...";
-
-            // ✅ Step 2: Fetch Products
-            let productResponse = await fetch("/products/fetch-products", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            let productResult = await productResponse.json();
-
-            if (productResult.success) {
-                statusMessage.textContent = `✅ ${productResult.message}`;
+            let result = await response.json();
+            if (result.success) {
+                clearStatus.textContent = result.message;
             } else {
-                statusMessage.textContent = `❌ Failed to fetch products: ${productResult.message}`;
+                clearStatus.textContent = "❌ Failed to clear database.";
             }
         } catch (error) {
-            statusMessage.textContent = "❌ Error syncing data.";
+            clearStatus.textContent = "❌ Error clearing database.";
             console.error("Error:", error);
         }
     });
 </script>
+
+
+<script>
+    // Define required scopes in an array for better maintainability
+    const requiredScopes = [
+        'selldone:identification',
+        'backoffice:shop:read',
+        'backoffice:order:read',
+        'backoffice:product:read',
+        'backoffice:category:read',
+        'backoffice:customer:read'
+    ];
+
+    // Build the URL dynamically
+    const baseUrl = 'https://selldone.com/auth/erp';
+    const queryString = requiredScopes
+        .map(scope => `scopes[]=${encodeURIComponent(scope)}`)
+        .join('&');
+
+    // Set the href attribute
+    document.getElementById('createTokenLink').href = `${baseUrl}?${queryString}`;
+</script>
+
 </body>
 </html>

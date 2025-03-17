@@ -39,12 +39,21 @@ const userRoutes = require("./routes/user");
 const shopRoutes = require("./routes/shop");
 const productRoutes = require("./routes/products");
 const categoryRoutes = require("./routes/categories");
+const adminRoutes = require("./routes/admin");
+const customersRoutes = require("./routes/customers");
+
 // ✅ Use Routes
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/shop", shopRoutes);
 app.use("/products", productRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/admin", adminRoutes);
+app.use("/customers", customersRoutes);
+
+
+const progressRouter = require('./routes/progress');
+app.use('/progress', progressRouter.router);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

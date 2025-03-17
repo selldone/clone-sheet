@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { KeyValue, Shop, Product, Category } = require("../models");
 const axios = require("axios");
+const DatabaseCleaner = require("../src/utils/DatabaseCleaner");
 
 router.post("/fetch-shop", async (req, res) => {
     try {
@@ -22,9 +23,8 @@ router.post("/fetch-shop", async (req, res) => {
         const oldShopEntry = await KeyValue.findOne({ where: { key: "selected_shop_id" } });
         if (oldShopEntry && oldShopEntry.value !== shop_id) {
             // If shop ID has changed, remove all data in products, shops, and categories tables
-            await Product.destroy({ where: {}, truncate: true });
-            await Shop.destroy({ where: {}, truncate: true });
-            await Category.destroy({ where: {}, truncate: true });
+            await DatabaseCleaner.clear();
+            await Shop.destroy({ where: {} });
             console.log("✅ Data in products, shops, and categories tables have been cleared due to shop change.");
         }
 

@@ -135,6 +135,7 @@ module.exports = {
         table: "shops",
         field: "id",
       },
+      onDelete: "CASCADE",
     });
 
 

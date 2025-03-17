@@ -10,17 +10,19 @@ module.exports = {
         comment: "Unique product identifier"
       },
 
-      type: {
-        type: Sequelize.ENUM("VIRTUAL", "PHYSICAL", "SERVICE", "FILE", "SUBSCRIPTION"),
-        allowNull: false,
-        comment: "Type of the product"
-      },
 
       title: {
         type: Sequelize.STRING(255),
         allowNull: false,
         comment: "Title of the product"
       },
+      type: {
+        type: Sequelize.ENUM("VIRTUAL", "PHYSICAL", "SERVICE", "FILE", "SUBSCRIPTION"),
+        allowNull: false,
+        comment: "Type of the product"
+      },
+
+
       title_en: {
         type: Sequelize.TEXT,
         allowNull: true,
@@ -42,6 +44,13 @@ module.exports = {
         allowNull: false,
         defaultValue: "Open",
         comment: "Status of the product"
+      },
+
+      quantity: {
+        type: Sequelize.DOUBLE.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: "Quantity of the product"
       },
 
 
@@ -81,12 +90,6 @@ module.exports = {
       },
 
 
-      quantity: {
-        type: Sequelize.DOUBLE.UNSIGNED,
-        allowNull: false,
-        defaultValue: 0,
-        comment: "Quantity of the product"
-      },
 
       unit: {
         type: Sequelize.STRING(16),

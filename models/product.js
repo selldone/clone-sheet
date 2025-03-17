@@ -689,7 +689,7 @@ module.exports = (sequelize, DataTypes) => {
             tableName: "products",
             timestamps: true,
             underscored: true,
-            paranoid: true, // Enables soft delete functionality
+            paranoid: false, // Enables soft delete functionality
             createdAt: "created_at",
             updatedAt: "updated_at",
             deletedAt: "deleted_at"

@@ -458,7 +458,7 @@ module.exports = (sequelize, DataTypes) => {
             tableName: "shops",
             timestamps: true,
             underscored: true,
-            paranoid: true,
+            paranoid: false,
             createdAt: "created_at",
             updatedAt: "updated_at",
             deletedAt: "deleted_at"
