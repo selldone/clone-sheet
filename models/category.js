@@ -90,6 +90,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 get() {
                     const value = this.getDataValue("filters");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -101,6 +103,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 get() {
                     const value = this.getDataValue("filters");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -117,6 +121,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 get() {
                     const value = this.getDataValue("augment");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -140,6 +146,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 get() {
                     const value = this.getDataValue("engine");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {

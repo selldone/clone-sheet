@@ -192,6 +192,11 @@ module.exports = {
         allowNull: true,
         comment: "Icon path of the product"
       },
+      cover:{
+        type: Sequelize.TEXT,
+        allowNull: true,
+        comment: "Cover image path of the product"
+      },
       message: {
         type: Sequelize.TEXT,
         allowNull: true,

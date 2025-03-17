@@ -47,14 +47,26 @@
     <!-- ✅ Data Synchronization Section -->
     <div class="mt-8 border-t pt-6">
         <h2 class="text-lg font-semibold text-gray-700 text-center">Data Synchronization</h2>
-        <button id="fetchProductsButton"
+        <button id="syncAllButton"
                 class="w-full mt-4 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition">
-            Sync Categories & Fetch Products
+            Sync All Resources
         </button>
-        <p id="categoriesStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
-        <p id="productsStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
-        <p id="customersStatusMessage" class="text-sm text-gray-600 mt-2 text-start"></p>
 
+        <!-- Dynamic Sync Status Table -->
+        <div class="mt-4 overflow-hidden border rounded-md">
+            <table id="syncStatusTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="syncStatusTableBody">
+                <!-- Table rows will be generated dynamically -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- ✅ Clear Database Section -->
@@ -83,7 +95,100 @@
 </div>
 
 <script>
-    // Add this to your script section
+    // Resource configuration array - easily expandable
+    const resources = [
+        {
+            id: 'categories',
+            name: 'Categories',
+            icon: '📁',
+            endpoint: '/categories/fetch-categories'
+        },
+        {
+            id: 'products',
+            name: 'Products',
+            icon: '📦',
+            endpoint: '/products/fetch-products'
+        },
+        {
+            id: 'customers',
+            name: 'Customers',
+            icon: '👥',
+            endpoint: '/customers/fetch-customers'
+        },
+        {
+            id: 'shop_data',
+            name: 'Shop Data',
+            icon: '🏪',
+            endpoint: '/shop-data/fetch-shop-data'
+        }
+        // Add new resources here
+    ];
+
+    // Generate table rows for each resource
+    function generateSyncStatusTable() {
+        const tableBody = document.getElementById('syncStatusTableBody');
+        tableBody.innerHTML = '';
+
+        resources.forEach(resource => {
+            const row = document.createElement('tr');
+            row.id = `${resource.id}-row`;
+
+            // Resource name cell with icon
+            const nameCell = document.createElement('td');
+            nameCell.className = 'px-4 py-3 whitespace-nowrap';
+            nameCell.innerHTML = `<div class="flex items-center">
+                <span class="mr-2">${resource.icon}</span>
+                <span class="font-medium">${resource.name}</span>
+            </div>`;
+
+            // Status message cell
+            const statusCell = document.createElement('td');
+            statusCell.className = 'px-4 py-3 whitespace-nowrap text-sm';
+            statusCell.id = `${resource.id}-status`;
+            statusCell.textContent = 'Waiting...';
+
+            // Progress cell with percentage
+            const progressCell = document.createElement('td');
+            progressCell.className = 'px-4 py-3 whitespace-nowrap text-right text-sm';
+
+            // Progress bar container
+            const progressBarContainer = document.createElement('div');
+            progressBarContainer.className = 'flex items-center justify-end';
+
+            // Progress bar
+            const progressBar = document.createElement('div');
+            progressBar.className = 'w-16 bg-gray-200 rounded-full h-2.5 mr-2';
+
+            const progressBarInner = document.createElement('div');
+            progressBarInner.className = 'bg-blue-600 h-2.5 rounded-full';
+            progressBarInner.id = `${resource.id}-progress-bar`;
+            progressBarInner.style.width = '0%';
+
+            // Progress percentage
+            const progressText = document.createElement('span');
+            progressText.id = `${resource.id}-progress`;
+            progressText.textContent = '0%';
+            progressText.className = 'text-xs text-gray-500';
+
+            progressBar.appendChild(progressBarInner);
+            progressBarContainer.appendChild(progressBar);
+            progressBarContainer.appendChild(progressText);
+            progressCell.appendChild(progressBarContainer);
+
+            row.appendChild(nameCell);
+            row.appendChild(statusCell);
+            row.appendChild(progressCell);
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Initialize the status table
+    document.addEventListener('DOMContentLoaded', () => {
+        generateSyncStatusTable();
+        setupEventSource();
+    });
+
     let eventSource;
 
     function setupEventSource() {
@@ -99,29 +204,36 @@
         eventSource.onmessage = function (event) {
             const data = JSON.parse(event.data);
 
-            // Format the progress display
-            const progressText = data.progress < 100 ? `[${data.progress}%] ` : '';
+            const statusElement = document.getElementById(`${data.type}-status`);
+            const progressElement = document.getElementById(`${data.type}-progress`);
+            const progressBarElement = document.getElementById(`${data.type}-progress-bar`);
+            const rowElement = document.getElementById(`${data.type}-row`);
 
-            let statusMessage;
-            // Select the appropriate status element based on data type
-            if (data.type === 'categories') {
-                statusMessage = document.getElementById("categoriesStatusMessage");
-                statusMessage.textContent = `📁 Categories: ${progressText}${data.message}`;
-            } else if (data.type === 'products') {
-                statusMessage = document.getElementById("productsStatusMessage");
-                statusMessage.textContent = `📦 Products: ${progressText}${data.message}`
-            } else if (data.type === 'customers') {
-                statusMessage = document.getElementById("customersStatusMessage");
-                statusMessage.textContent = `👥 Customers: ${progressText}${data.message}`
-            } else {
-                return;
-            }
+            if (statusElement && progressElement && progressBarElement) {
+                // Update status message
+                statusElement.textContent = data.message;
 
-            // Add visual indicator
-            if (data.progress < 100) {
-                statusMessage.classList.add('animate-pulse');
-            } else {
-                statusMessage.classList.remove('animate-pulse');
+                // Update progress percentage
+                progressElement.textContent = `${data.progress}%`;
+                progressBarElement.style.width = `${data.progress}%`;
+
+                // Visual indicators
+                if (data.progress < 100) {
+                    rowElement.classList.add('bg-blue-50');
+                    progressBarElement.classList.add('animate-pulse');
+                } else {
+                    rowElement.classList.remove('bg-blue-50');
+                    progressBarElement.classList.remove('animate-pulse');
+
+                    // Add success/error styling based on message content
+                    if (data.message.includes('✅')) {
+                        progressBarElement.classList.remove('bg-red-600');
+                        progressBarElement.classList.add('bg-green-600');
+                    } else if (data.message.includes('❌')) {
+                        progressBarElement.classList.remove('bg-blue-600');
+                        progressBarElement.classList.add('bg-red-600');
+                    }
+                }
             }
         };
 
@@ -131,50 +243,57 @@
         };
     }
 
-    // Setup SSE when page loads
-    document.addEventListener('DOMContentLoaded', setupEventSource);
+    // Sequential sync of all resources
+    async function syncAllResources() {
+        let currentIndex = 0;
 
-    // Update the fetch products button event listener
-    document.getElementById("fetchProductsButton").addEventListener("click", async function () {
-        const categoriesStatus = document.getElementById("categoriesStatusMessage");
-        const productsStatus = document.getElementById("productsStatusMessage");
-        const customersStatus = document.getElementById("customersStatusMessage");
+        // Reset all statuses
+        resources.forEach(resource => {
+            const statusElement = document.getElementById(`${resource.id}-status`);
+            const progressElement = document.getElementById(`${resource.id}-progress`);
+            const progressBarElement = document.getElementById(`${resource.id}-progress-bar`);
 
-        // Clear previous messages
-        categoriesStatus.textContent = "📁 Categories: Starting sync...";
-        productsStatus.textContent = "📦 Products: Waiting for categories to complete...";
-        customersStatus.textContent = "👥 Customers: Waiting for products to complete...";
+            if (statusElement) statusElement.textContent = 'Waiting...';
+            if (progressElement) progressElement.textContent = '0%';
+            if (progressBarElement) {
+                progressBarElement.style.width = '0%';
+                progressBarElement.classList.remove('bg-green-600', 'bg-red-600');
+                progressBarElement.classList.add('bg-blue-600');
+            }
+        });
 
-        try {
-            // First fetch categories
-            let categoryResponse = await fetch("/categories/fetch-categories", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"}
-            });
+        async function processNext() {
+            if (currentIndex >= resources.length) return;
 
+            const resource = resources[currentIndex];
+            const statusElement = document.getElementById(`${resource.id}-status`);
 
-            // After categories are done, start products
-            productsStatus.textContent = "📦 Products: Starting sync...";
+            if (statusElement) {
+                statusElement.textContent = 'Starting sync...';
+            }
 
-            let productResponse = await fetch("/products/fetch-products", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"}
-            });
+            try {
+                await fetch(resource.endpoint, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"}
+                });
 
-            // Fetch customers:
-            customersStatus.textContent = "👥 Customers: Starting sync...";
-            let customerResponse = await fetch("/customers/fetch-customers", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"}
-            });
+                // Move to next resource regardless of success/failure
+                // The event source will handle updating the UI with the result
+            } catch (error) {
+                console.error(`Error syncing ${resource.name}:`, error);
+            }
 
-        } catch (error) {
-          //  categoriesStatus.textContent = "❌ Error syncing data.";
-          //  productsStatus.textContent = "❌ Error syncing data.";
-          //  customersStatus.textContent = "❌ Error syncing data.";
-            console.error("Error:", error);
+            currentIndex++;
+            processNext();
         }
-    });
+
+        // Start processing
+        await processNext();
+    }
+
+    // Update button handler
+    document.getElementById("syncAllButton").addEventListener("click", syncAllResources);
 
     // Save Token, Fetch User & Shop Info
     document.getElementById("connectButton").addEventListener("click", async function () {
@@ -237,7 +356,6 @@
         }
     });
 
-
     // Clear (truncate) all tables in database (Admin action)
     document.getElementById("clearDatabaseButton").addEventListener("click", async function () {
         const clearStatus = document.getElementById("clearStatusMessage");
@@ -262,7 +380,6 @@
         }
     });
 </script>
-
 
 <script>
     // Define required scopes in an array for better maintainability

@@ -1,0 +1,153 @@
+<!-- views/tabs/setup.ejs -->
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Setup</h2>
+        <p class="text-gray-600 mt-1">Configure your Selldone API connection</p>
+    </div>
+
+    <!-- Access Token Section -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-medium text-gray-800">API Access Token</h3>
+        </div>
+
+        <div class="p-6">
+            <p class="text-sm text-gray-600 mb-4">
+                To generate your access token, click the link below, complete the process, and then copy the token.
+            </p>
+            <a id="createTokenLink"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i data-feather="key" class="h-4 w-4 mr-2"></i>
+                Create Access Token
+            </a>
+        </div>
+    </div>
+
+    <!-- Authentication Section -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-medium text-gray-800">Authentication Details</h3>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bearer Token</label>
+                <input id="tokenInput" type="text"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Paste your Bearer token here">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Shop ID</label>
+                <input id="shopIdInput" type="text"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Enter your Shop ID">
+            </div>
+
+            <button id="connectButton"
+                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <i data-feather="save" class="h-4 w-4 mr-2"></i>
+                Save & Fetch Data
+            </button>
+
+            <p id="statusMessage" class="text-sm text-center"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Define required scopes in an array for better maintainability
+    const requiredScopes = [
+        'selldone:identification',
+        'backoffice:shop:read',
+        'backoffice:order:read',
+        'backoffice:product:read',
+        'backoffice:category:read',
+        'backoffice:customer:read'
+    ];
+
+    // Build the URL dynamically
+    const baseUrl = 'https://selldone.com/auth/erp';
+    const queryString = requiredScopes
+        .map(scope => `scopes[]=${encodeURIComponent(scope)}`)
+        .join('&');
+
+    // Set the href attribute
+    document.getElementById('createTokenLink').href = `${baseUrl}?${queryString}`;
+
+    // Save Token, Fetch User & Shop Info
+    document.getElementById("connectButton").addEventListener("click", async function () {
+        const tokenInput = document.getElementById("tokenInput").value.trim();
+        const shopIdInput = document.getElementById("shopIdInput").value.trim();
+        const statusMessage = document.getElementById("statusMessage");
+
+        if (!tokenInput) {
+            statusMessage.textContent = "❌ Please enter a token.";
+            statusMessage.className = "text-sm text-center text-red-500";
+            return;
+        }
+
+        // Ensure "Bearer " prefix on token
+        let token = tokenInput.startsWith("Bearer ") ? tokenInput : `Bearer ${tokenInput}`;
+
+        try {
+            statusMessage.textContent = "🔄 Saving Token...";
+            statusMessage.className = "text-sm text-center text-blue-500";
+
+            let tokenResponse = await fetch("/auth/set-token", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({token})
+            });
+
+            let tokenResult = await tokenResponse.json();
+            if (!tokenResult.success) {
+                statusMessage.textContent = "❌ Failed to save token.";
+                statusMessage.className = "text-sm text-center text-red-500";
+                return;
+            }
+
+            statusMessage.textContent = "🔄 Fetching User Info...";
+            let userResponse = await fetch("/user/fetch-user", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({token})
+            });
+
+            let userResult = await userResponse.json();
+            if (!userResult.success) {
+                statusMessage.textContent = `❌ Failed to fetch user info: ${userResult.message}`;
+                statusMessage.className = "text-sm text-center text-red-500";
+                return;
+            }
+
+            if (!shopIdInput) {
+                statusMessage.textContent = "⚠️ User data saved! Please enter a Shop ID.";
+                statusMessage.className = "text-sm text-center text-yellow-500";
+                return;
+            }
+
+            statusMessage.textContent = "🔄 Fetching Shop Info...";
+            let shopResponse = await fetch("/shop/fetch-shop", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({shop_id: shopIdInput, token})
+            });
+
+            let shopResult = await shopResponse.json();
+            if (shopResult.success) {
+                statusMessage.textContent = "✅ Shop data saved successfully!";
+                statusMessage.className = "text-sm text-center text-green-500";
+            } else {
+                statusMessage.textContent = `❌ Failed to fetch shop info: ${shopResult.message}`;
+                statusMessage.className = "text-sm text-center text-red-500";
+            }
+        } catch (error) {
+            statusMessage.textContent = "❌ Error occurred.";
+            statusMessage.className = "text-sm text-center text-red-500";
+            console.error("Error:", error);
+        }
+    });
+</script>

@@ -1,0 +1,601 @@
+<!-- views/tabs/explore.ejs -->
+<div class="max-w-full mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Data Explorer</h2>
+        <p class="text-gray-600 mt-1">Browse and analyze your data</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-800">Data Browser</h3>
+            <div class="flex space-x-3">
+                <select id="explore-table-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-4 py-2">
+                    <option value="" selected disabled>Select a table</option>
+                    <option value="products">Products</option>
+                    <option value="categories">Categories</option>
+                    <option value="customers">Customers</option>
+                    <option value="shop_data">Shop Data</option>
+                </select>
+                <div class="relative">
+                    <input id="explore-search" type="text" placeholder="Search..." class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-4 py-2 pl-9">
+                    <i data-feather="search" class="h-4 w-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-0">
+            <div id="explore-status" class="text-center text-gray-500 py-4">Select a table to view data</div>
+
+            <!-- Table Container -->
+            <div id="explore-table-container" class="overflow-x-auto">
+                <table id="explore-table" class="min-w-full divide-y divide-gray-200">
+                    <thead id="explore-table-header" class="bg-gray-50">
+                    <!-- Headers will be inserted here dynamically -->
+                    </thead>
+                    <tbody id="explore-table-body" class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div class="text-gray-500 text-sm">
+                    <span id="explore-record-count">0</span> records found
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="explore-prev-page" class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-feather="chevron-left" class="h-4 w-4"></i>
+                    </button>
+                    <span id="explore-pagination" class="text-sm text-gray-500">Page <span id="explore-current-page">1</span> of <span id="explore-total-pages">1</span></span>
+                    <button id="explore-next-page" class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-feather="chevron-right" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="explore-export-csv" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i data-feather="download" class="h-4 w-4 mr-1"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Explore Table Variables
+    let exploreData = [];
+    let exploreColumns = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let itemsPerPage = 20;
+    let currentSortColumn = null;
+    let sortDirection = 'asc';
+    let currentTableName = '';
+    let searchTerm = '';
+
+    // Initialize table when table selector changes
+    document.getElementById('explore-table-selector').addEventListener('change', async function(e) {
+        currentTableName = e.target.value;
+        if (!currentTableName) return;
+
+        currentPage = 1;
+        await fetchTableData();
+    });
+
+    // Search functionality
+    document.getElementById('explore-search').addEventListener('input', function(e) {
+        searchTerm = e.target.value;
+        currentPage = 1;
+        renderTable();
+    });
+
+    // Pagination handlers
+    document.getElementById('explore-prev-page').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+
+    document.getElementById('explore-next-page').addEventListener('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    });
+
+    // Export to CSV
+    document.getElementById('explore-export-csv').addEventListener('click', function() {
+        if (!exploreData.length) return;
+
+        // Create CSV content
+        const headers = exploreColumns.map(col => `"${col}"`).join(',');
+        const rows = exploreData.map(row =>
+            exploreColumns.map(col => `"${row[col] || ''}"`).join(',')
+        );
+
+        const csvContent = [headers, ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        // Create download link
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${currentTableName}_export.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Fetch data from the server
+    async function fetchTableData() {
+        const statusElement = document.getElementById('explore-status');
+        statusElement.textContent = "Loading data...";
+        statusElement.classList.remove('hidden');
+
+        document.getElementById('explore-table-header').innerHTML = '';
+        document.getElementById('explore-table-body').innerHTML = '';
+
+        try {
+            const response = await fetch(`/database/get-table-data/${currentTableName}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                statusElement.textContent = result.message;
+                statusElement.classList.add('text-red-500');
+                return;
+            }
+
+            // Set data and get columns from server response
+            exploreData = result.rows;
+
+            // Use columns in database order if provided
+            if (result.columns && result.columns.length) {
+                exploreColumns = result.columns;
+            } else if (exploreData.length) {
+                // Fallback to getting columns from first row
+                exploreColumns = Object.keys(exploreData[0]);
+            } else {
+                exploreColumns = [];
+                statusElement.textContent = "No data found in this table";
+                document.getElementById('explore-record-count').textContent = "0";
+                return;
+            }
+
+            // Hide status and render table
+            statusElement.classList.add('hidden');
+            renderTable();
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            statusElement.textContent = `Error: ${error.message}`;
+            statusElement.classList.add('text-red-500');
+        }
+    }
+
+    // Render the table with current data and filters
+    function renderTable() {
+        // Filter data by search term if provided
+        let filteredData = exploreData;
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filteredData = exploreData.filter(row =>
+                Object.values(row).some(value =>
+                    String(value).toLowerCase().includes(term)
+                )
+            );
+        }
+
+        // Sort data if sort column is set
+        if (currentSortColumn) {
+            filteredData = [...filteredData].sort((a, b) => {
+                const valueA = a[currentSortColumn];
+                const valueB = b[currentSortColumn];
+
+                if (valueA === valueB) return 0;
+                if (valueA === null || valueA === undefined) return 1;
+                if (valueB === null || valueB === undefined) return -1;
+
+                const comparison = String(valueA).localeCompare(String(valueB));
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
+        }
+
+        // Update pagination
+        totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        if (currentPage > totalPages) currentPage = 1;
+
+        // Get current page data
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pageData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+        // Update header
+        const headerRow = document.getElementById('explore-table-header');
+        headerRow.innerHTML = '';
+
+        const tr = document.createElement('tr');
+        exploreColumns.forEach(column => {
+            const th = document.createElement('th');
+            th.className = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100';
+            th.innerHTML = `
+                <div class="flex items-center">
+                    <span>${column.replace(/_/g, ' ')}</span>
+                    ${currentSortColumn === column ?
+                `<svg class="ml-1 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            ${sortDirection === 'asc' ?
+                    '<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>' :
+                    '<path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>'}
+                        </svg>` : ''
+            }
+                </div>
+            `;
+
+            // Add sort event
+            th.addEventListener('click', () => {
+                if (currentSortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortColumn = column;
+                    sortDirection = 'asc';
+                }
+                renderTable();
+            });
+
+            tr.appendChild(th);
+        });
+        headerRow.appendChild(tr);
+
+        // Update body
+        const tbody = document.getElementById('explore-table-body');
+        tbody.innerHTML = '';
+
+        pageData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50';
+
+
+
+
+
+
+
+
+
+            // Replace the cell rendering loop in renderTable function
+            exploreColumns.forEach(column => {
+                const td = document.createElement('td');
+                td.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-500';
+                let value = row[column];
+                let contentAdded = false;
+
+                // Bold for ID columns
+                if (column === 'id' || column.endsWith('_id')) {
+                    td.innerHTML = `<span class="font-semibold">${value !== null && value !== undefined ? value : ''}</span>`;
+                    contentAdded = true;
+                }
+                // Boolean values with check/x icons
+                else if (typeof value === 'boolean' || value === 'true' || value === 'false') {
+                    const isTrue = value === true || value === 'true';
+                    td.innerHTML = isTrue ?
+                        '<svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>' :
+                        '<svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                    contentAdded = true;
+                }
+                // Enum-like values with color chips
+                else if (isEnumLike(column, value)) {
+                    const bgColor = getColorForString(value);
+                    td.innerHTML = `<span class="px-2 py-1 text-xs font-medium rounded-full ${bgColor}">${value}</span>`;
+                    contentAdded = true;
+                }
+                // Arrays with string values
+                else if (isStringArray(value)) {
+                    try {
+                        let array = typeof value === 'string' ? JSON.parse(value) : value;
+                        let display = '';
+
+                        if (array.length > 0) {
+                            display = `<div class="flex flex-wrap gap-1">`;
+                            array.slice(0, 2).forEach(item => {
+                                display += `<span class="px-2 py-0.5 bg-gray-100 text-xs rounded">${item}</span>`;
+                            });
+
+                            if (array.length > 2) {
+                                display += `<span class="px-2 py-0.5 bg-gray-100 text-xs rounded cursor-pointer"
+                                title="Click to view all">...</span>`;
+                            }
+                            display += `</div>`;
+
+                            td.innerHTML = display;
+                            td.addEventListener('click', () => showJsonModal(column, JSON.stringify(array, null, 2)));
+                            contentAdded = true;
+                        }
+                    } catch(e) {}
+                }
+                // Handle image URLs
+                else if ((isImageUrl(value) || isImageColumn(column)) && typeof value === 'string' && value) {
+                    try {
+                        const img = document.createElement('img');
+                        img.src = value;
+                        img.alt = column;
+                        img.className = 'h-10 w-10 rounded-full object-cover border border-gray-200';
+                        img.onerror = function() {
+                            this.onerror = null;
+                            this.src = 'https://via.placeholder.com/40?text=NA';
+                        };
+                        td.className = 'px-4 py-2';
+                        td.appendChild(img);
+                        contentAdded = true;
+                    } catch(e) {}
+                }
+                // Handle JSON objects
+                else if (isJsonObject(value) || isJsonArray(value)) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'flex items-center text-indigo-600 hover:text-indigo-900';
+                    button.innerHTML = '<svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> View';
+
+                    let jsonStr = '';
+                    try {
+                        jsonStr = typeof value === 'string' ? JSON.stringify(JSON.parse(value), null, 2) : JSON.stringify(value, null, 2);
+                    } catch (e) {
+                        jsonStr = String(value);
+                    }
+
+                    button.addEventListener('click', () => showJsonModal(column, jsonStr));
+                    td.appendChild(button);
+                    contentAdded = true;
+                }
+                // Handle dates
+                else if (typeof value === 'string' && (column.includes('_at') || column.includes('date')) && value) {
+                    try {
+                        td.textContent = new Date(value).toLocaleString();
+                        contentAdded = true;
+                    } catch(e) {}
+                }
+
+                // Default display (only if no content has been added yet)
+                if (!contentAdded) {
+                    td.textContent = value !== null && value !== undefined ? value : '';
+                }
+
+                tr.appendChild(td);
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            tbody.appendChild(tr);
+        });
+
+        // Update pagination display
+        document.getElementById('explore-record-count').textContent = filteredData.length;
+        document.getElementById('explore-current-page').textContent = currentPage;
+        document.getElementById('explore-total-pages').textContent = totalPages || 1;
+
+        // Update pagination buttons
+        document.getElementById('explore-prev-page').disabled = currentPage === 1;
+        document.getElementById('explore-next-page').disabled = currentPage >= totalPages;
+    }
+
+
+    // Add these helper functions after the existing variables in the script
+    function isJsonObject(value) {
+        if (!value) return false;
+        if (typeof value === 'object') return true;
+        if (typeof value !== 'string') return false;
+
+        try {
+            const parsed = JSON.parse(value);
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isJsonArray(value) {
+        if (!value) return false;
+        if (Array.isArray(value)) return true;
+        if (typeof value !== 'string') return false;
+
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isImageUrl(url) {
+        if (!url || typeof url !== 'string') return false;
+        return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+    }
+
+    function isImageColumn(columnName) {
+        const imageColumnPatterns = [
+            'image', 'img', 'avatar', 'photo', 'thumbnail', 'cover', 'icon', 'logo'
+        ];
+        return imageColumnPatterns.some(pattern =>
+            columnName.toLowerCase().includes(pattern));
+    }
+
+
+
+
+    // Add this at the end of the script section
+    function showJsonModal(title, jsonContent) {
+        // Create modal container
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+
+        // Create modal content
+        const content = document.createElement('div');
+        content.className = 'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'px-6 py-4 border-b border-gray-200 flex justify-between items-center';
+        header.innerHTML = `
+        <h3 class="text-lg font-medium text-gray-800">${title}</h3>
+        <button class="text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    `;
+
+        // Body with pre-formatted JSON
+        const body = document.createElement('div');
+        body.className = 'p-6 overflow-auto flex-grow';
+
+        const pre = document.createElement('pre');
+        pre.className = 'text-sm text-gray-800 bg-gray-50 p-4 rounded-md overflow-auto';
+        pre.textContent = jsonContent;
+
+        body.appendChild(pre);
+
+        // Assemble modal
+        content.appendChild(header);
+        content.appendChild(body);
+        modal.appendChild(content);
+
+        // Close button logic
+        const closeButton = header.querySelector('button');
+        closeButton.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+
+        // Close on click outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+
+        // Add to DOM
+        document.body.appendChild(modal);
+    }
+
+    // Add this observer to re-initialize Feather icons after table rendering
+    function initIcons() {
+        if (window.feather) {
+            feather.replace();
+        }
+    }
+
+
+    // Add this function to initialize data when explore tab is shown
+    function initExploreData() {
+        // Only proceed if we're not already displaying data
+        if (exploreData.length === 0) {
+            const tableSelector = document.getElementById('explore-table-selector');
+            // Check if we have options available
+            if (tableSelector && tableSelector.options.length > 1) {
+                // Select the first actual table option (index 1, after the placeholder)
+                tableSelector.selectedIndex = 1;
+                currentTableName = tableSelector.value;
+                // Fetch the data
+                fetchTableData();
+            }
+        }
+    }
+
+    // Add event listeners to detect tab activation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if explore tab is initially visible
+        if (!document.getElementById('explore-tab').classList.contains('hidden')) {
+            initExploreData();
+        }
+
+        // Listen for tab change events
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class' &&
+                    !document.getElementById('explore-tab').classList.contains('hidden')) {
+                    initExploreData();
+                }
+            });
+        });
+
+        // Start observing the explore tab for visibility changes
+        observer.observe(document.getElementById('explore-tab'), { attributes: true });
+
+        // Also listen for the navigation click as a backup method
+        document.getElementById('nav-explore').addEventListener('click', function() {
+            setTimeout(initExploreData, 100); // Small delay to ensure DOM is updated
+        });
+    });
+
+
+    // Helper function to determine if a value is a string array
+    function isStringArray(value) {
+        if (!value) return false;
+
+        let array;
+        try {
+            array = typeof value === 'string' ? JSON.parse(value) : value;
+        } catch (e) {
+            return false;
+        }
+
+        return Array.isArray(array) && array.length > 0 && array.every(item => typeof item === 'string');
+    }
+
+    // Helper function to determine if a value is enum-like
+    function isEnumLike(column, value) {
+        if (typeof value !== 'string' || !value) return false;
+
+        // Common enum column patterns
+        const enumPatterns = ['status', 'type', 'state', 'category', 'priority', 'level'];
+
+        // Enum-like if column matches pattern and value is a short string
+        return (
+            enumPatterns.some(pattern => column.toLowerCase().includes(pattern)) &&
+            value.length < 20 &&
+            !value.includes(' ') &&
+            isNaN(value)
+        );
+    }
+
+    // Generate consistent colors for enum values
+    function getColorForString(str) {
+        // Simple hash function
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        // Map hash to predefined Tailwind color classes
+        const colors = [
+            'bg-blue-100 text-blue-800',
+            'bg-green-100 text-green-800',
+            'bg-yellow-100 text-yellow-800',
+            'bg-red-100 text-red-800',
+            'bg-indigo-100 text-indigo-800',
+            'bg-purple-100 text-purple-800',
+            'bg-pink-100 text-pink-800'
+        ];
+
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+</script>

@@ -1,0 +1,179 @@
+<!-- views/layout.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selldone Connector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f7;
+        }
+        .sidebar-item.active {
+            background-color: rgba(0, 122, 255, 0.1);
+            color: #007AFF;
+            font-weight: 500;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .loading-bar {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6">
+                <h1 class="text-xl font-semibold text-gray-800">Selldone</h1>
+                <p class="text-xs text-gray-500">API Connector</p>
+            </div>
+
+            <nav class="flex-1 px-4 pb-4">
+                <a href="#" id="nav-setup" class="sidebar-item active flex items-center px-4 py-3 mb-1 rounded-md text-sm">
+                    <i data-feather="settings" class="h-4 w-4 mr-3"></i>
+                    Setup
+                </a>
+                <a href="#" id="nav-sync" class="sidebar-item flex items-center px-4 py-3 mb-1 rounded-md text-sm">
+                    <i data-feather="refresh-cw" class="h-4 w-4 mr-3"></i>
+                    Sync
+                </a>
+                <a href="#" id="nav-database" class="sidebar-item flex items-center px-4 py-3 mb-1 rounded-md text-sm">
+                    <i data-feather="database" class="h-4 w-4 mr-3"></i>
+                    Database
+                </a>
+                <a href="#" id="nav-explore" class="sidebar-item flex items-center px-4 py-3 mb-1 rounded-md text-sm">
+                    <i data-feather="grid" class="h-4 w-4 mr-3"></i>
+                    Explore
+                </a>
+            </nav>
+
+            <div class="border-t border-gray-200 p-4">
+                <div class="text-xs text-gray-500 mb-1">Connection Status</div>
+                <div id="connection-status" class="flex items-center">
+                    <span class="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                    <span class="text-xs font-medium">Connected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Tab Content -->
+            <div id="setup-tab" class="tab-content p-8">
+                <%- include('tabs/setup') %>
+            </div>
+
+            <div id="sync-tab" class="tab-content hidden p-8">
+                <%- include('tabs/sync') %>
+            </div>
+
+            <div id="database-tab" class="tab-content hidden p-8">
+                <%- include('tabs/database') %>
+            </div>
+
+            <div id="explore-tab" class="tab-content hidden p-8">
+                <%- include('tabs/explore') %>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize icons
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            setupEventSource();
+            setupTabNavigation();
+        });
+
+        // Tab navigation
+        function setupTabNavigation() {
+            const tabs = ['setup', 'sync', 'database', 'explore'];
+
+            tabs.forEach(tab => {
+                document.getElementById(`nav-${tab}`).addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // Hide all tabs
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+
+                    // Remove active class from all nav items
+                    document.querySelectorAll('.sidebar-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    // Show selected tab
+                    document.getElementById(`${tab}-tab`).classList.remove('hidden');
+
+                    // Mark nav item as active
+                    document.getElementById(`nav-${tab}`).classList.add('active');
+                });
+            });
+        }
+
+        // Event source setup
+        let eventSource;
+        function setupEventSource() {
+            // Close any existing connection
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Connect to SSE endpoint
+            eventSource = new EventSource('/progress/stream');
+
+            // Handle incoming events
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                const statusElement = document.getElementById(`${data.type}-status`);
+                const progressElement = document.getElementById(`${data.type}-progress`);
+                const progressBarElement = document.getElementById(`${data.type}-progress-bar`);
+
+                if (statusElement && progressElement && progressBarElement) {
+                    // Update status message
+                    statusElement.textContent = data.message;
+
+                    // Update progress percentage
+                    progressElement.textContent = `${data.progress}%`;
+                    progressBarElement.style.width = `${data.progress}%`;
+
+                    // Visual indicators
+                    if (data.progress < 100) {
+                        progressBarElement.classList.add('animate-pulse');
+                    } else {
+                        progressBarElement.classList.remove('animate-pulse');
+
+                        // Add success/error styling based on message content
+                        if (data.message.includes('✅')) {
+                            progressBarElement.classList.remove('bg-blue-500');
+                            progressBarElement.classList.add('bg-green-500');
+                        } else if (data.message.includes('❌')) {
+                            progressBarElement.classList.remove('bg-blue-500');
+                            progressBarElement.classList.add('bg-red-500');
+                        }
+                    }
+                }
+            };
+
+            eventSource.onerror = function() {
+                console.log("EventSource disconnected");
+                document.getElementById('connection-status').innerHTML =
+                    '<span class="h-2 w-2 rounded-full bg-red-500 mr-2"></span>' +
+                    '<span class="text-xs font-medium">Disconnected</span>';
+                eventSource.close();
+            };
+        }
+    </script>
+</body>
+</html>

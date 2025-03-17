@@ -1,0 +1,97 @@
+<!-- views/tabs/database.ejs -->
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Database Management</h2>
+        <p class="text-gray-600 mt-1">Manage your local database and connection settings</p>
+    </div>
+
+    <!-- NocoDB Setup Section -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-medium text-gray-800">Database Connection</h3>
+        </div>
+
+        <div class="p-6">
+            <p class="text-sm text-gray-600 mb-4">
+                Use these connection details to connect to your database from external tools like NocoDB.
+            </p>
+
+            <div class="bg-gray-50 rounded-md p-4 border border-gray-200">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">SQL Host</div>
+                        <div class="text-sm font-medium">host.docker.internal</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">SQL Port</div>
+                        <div class="text-sm font-medium"><%= DB_CONFIG.port %></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">Database</div>
+                        <div class="text-sm font-medium"><%= DB_CONFIG.database %></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-1">Example SQL Address</div>
+                        <div class="text-sm font-medium">host.docker.internal:<%= DB_CONFIG.port %>/<%= DB_CONFIG.database %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Database Section -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-800">Admin Actions</h3>
+        </div>
+
+        <div class="p-6">
+            <p class="text-sm text-gray-600 mb-4">
+                Warning: These actions will affect your local database and cannot be undone.
+            </p>
+
+            <button id="clearDatabaseButton" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <i data-feather="trash-2" class="h-4 w-4 mr-2"></i>
+                Clear All Data
+            </button>
+
+            <p id="clearStatusMessage" class="text-sm mt-3"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Clear (truncate) all tables in database (Admin action)
+    document.getElementById("clearDatabaseButton").addEventListener("click", async function () {
+        const clearStatus = document.getElementById("clearStatusMessage");
+
+        if (!confirm("⚠️ This will delete ALL data from your database. Are you sure?")) {
+            return;
+        }
+
+        clearStatus.textContent = "🔄 Clearing database...";
+        clearStatus.className = "text-sm mt-3 text-blue-500";
+
+        try {
+            let response = await fetch("/admin/clear-database", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"}
+            });
+
+            let result = await response.json();
+            if (result.success) {
+                clearStatus.textContent = result.message;
+                clearStatus.className = "text-sm mt-3 text-green-500";
+            } else {
+                clearStatus.textContent = "❌ Failed to clear database.";
+                clearStatus.className = "text-sm mt-3 text-red-500";
+            }
+        } catch (error) {
+            clearStatus.textContent = "❌ Error clearing database.";
+            clearStatus.className = "text-sm mt-3 text-red-500";
+            console.error("Error:", error);
+        }
+    });
+
+
+</script>

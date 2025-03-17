@@ -6,7 +6,7 @@ const app = express();
 
 // ✅ Add middleware to parse JSON and form data
 app.use(express.json()); // Parse JSON requests
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded form data
+app.use(express.urlencoded({extended: true})); // Parse URL-encoded form data
 
 
 require("./db");
@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
         port: process.env.DB_PORT,
         database: process.env.DB_NAME
     };
-    res.render('index', { DB_CONFIG });
+    res.render('layout', {DB_CONFIG});
 });
 
 
@@ -41,6 +41,9 @@ const productRoutes = require("./routes/products");
 const categoryRoutes = require("./routes/categories");
 const adminRoutes = require("./routes/admin");
 const customersRoutes = require("./routes/customers");
+const shopDataRoutes = require("./routes/shop-data");
+const databaseRoutes = require('./routes/database');
+
 
 // ✅ Use Routes
 app.use("/auth", authRoutes);
@@ -50,6 +53,8 @@ app.use("/products", productRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/admin", adminRoutes);
 app.use("/customers", customersRoutes);
+app.use("/shop-data", shopDataRoutes);
+app.use("/database", databaseRoutes);
 
 
 const progressRouter = require('./routes/progress');

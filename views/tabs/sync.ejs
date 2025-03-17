@@ -1,0 +1,175 @@
+<!-- views/tabs/sync.ejs -->
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-900">Data Synchronization</h2>
+            <p class="text-gray-600 mt-1">Sync resources between Selldone and your local database</p>
+        </div>
+
+        <button id="syncAllButton" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i data-feather="refresh-cw" class="h-4 w-4 mr-2"></i>
+            Sync All Resources
+        </button>
+    </div>
+
+    <!-- Resources Grid -->
+    <div class="grid grid-cols-1 gap-6">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-lg font-medium text-gray-800">Resources</h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="syncStatusTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Table rows will be generated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Resource configuration array - easily expandable
+    const resources = [
+        {
+            id: 'categories',
+            name: 'Categories',
+            icon: 'folder',
+            endpoint: '/categories/fetch-categories'
+        },
+        {
+            id: 'products',
+            name: 'Products',
+            icon: 'package',
+            endpoint: '/products/fetch-products'
+        },
+        {
+            id: 'customers',
+            name: 'Customers',
+            icon: 'users',
+            endpoint: '/customers/fetch-customers'
+        },
+        {
+            id: 'shop-data', // Must be matched to resource name
+            name: 'Shop Data',
+            icon: 'shopping-bag',
+            endpoint: '/shop-data/fetch-shop-data'
+        }
+        // Add new resources here
+    ];
+
+    // Generate table rows for each resource
+    function generateSyncStatusTable() {
+        const tableBody = document.getElementById('syncStatusTableBody');
+        tableBody.innerHTML = '';
+
+        resources.forEach(resource => {
+            const row = document.createElement('tr');
+            row.id = `${resource.id}-row`;
+
+            // Resource name cell with icon
+            const nameCell = document.createElement('td');
+            nameCell.className = 'px-6 py-4 whitespace-nowrap';
+            nameCell.innerHTML = `<div class="flex items-center">
+                <span class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <i data-feather="${resource.icon}" class="h-5 w-5"></i>
+                </span>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">${resource.name}</div>
+                </div>
+            </div>`;
+
+            // Status message cell
+            const statusCell = document.createElement('td');
+            statusCell.className = 'px-6 py-4 whitespace-nowrap';
+            statusCell.innerHTML = `<div class="text-sm text-gray-500" id="${resource.id}-status">Waiting to sync...</div>`;
+
+            // Progress cell
+            const progressCell = document.createElement('td');
+            progressCell.className = 'px-6 py-4 whitespace-nowrap';
+            progressCell.innerHTML = `
+                <div class="w-full">
+                    <div class="relative pt-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="text-xs text-gray-500" id="${resource.id}-progress">0%</div>
+                        </div>
+                        <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                            <div id="${resource.id}-progress-bar" class="loading-bar shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            row.appendChild(nameCell);
+            row.appendChild(statusCell);
+            row.appendChild(progressCell);
+            tableBody.appendChild(row);
+        });
+
+        // Initialize feather icons for the newly created rows
+        feather.replace();
+    }
+
+    // Initialize the status table
+    document.addEventListener('DOMContentLoaded', () => {
+        generateSyncStatusTable();
+    });
+
+    // Sequential sync of all resources
+    async function syncAllResources() {
+        let currentIndex = 0;
+
+        // Reset all statuses
+        resources.forEach(resource => {
+            const statusElement = document.getElementById(`${resource.id}-status`);
+            const progressElement = document.getElementById(`${resource.id}-progress`);
+            const progressBarElement = document.getElementById(`${resource.id}-progress-bar`);
+
+            if (statusElement) statusElement.textContent = 'Waiting to sync...';
+            if (progressElement) progressElement.textContent = '0%';
+            if (progressBarElement) {
+                progressBarElement.style.width = '0%';
+                progressBarElement.classList.remove('bg-green-500', 'bg-red-500');
+                progressBarElement.classList.add('bg-blue-500');
+            }
+        });
+
+        async function processNext() {
+            if (currentIndex >= resources.length) return;
+
+            const resource = resources[currentIndex];
+            const statusElement = document.getElementById(`${resource.id}-status`);
+
+            if (statusElement) {
+                statusElement.textContent = 'Starting sync...';
+            }
+
+            try {
+                await fetch(resource.endpoint, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"}
+                });
+            } catch (error) {
+                console.error(`Error syncing ${resource.name}:`, error);
+            }
+
+            currentIndex++;
+            processNext();
+        }
+
+        // Start processing
+        await processNext();
+    }
+
+    // Update button handler
+    document.getElementById("syncAllButton").addEventListener("click", syncAllResources);
+</script>

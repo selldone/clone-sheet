@@ -116,6 +116,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Additional shop information",
                 get() {
                     const value = this.getDataValue("info");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -142,6 +144,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Support details",
                 get() {
                     const value = this.getDataValue("support");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -173,6 +177,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Shop options",
                 get() {
                     const value = this.getDataValue("options");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -199,6 +205,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Available currencies",
                 get() {
                     const value = this.getDataValue("currencies");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -211,6 +219,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Footer content",
                 get() {
                     const value = this.getDataValue("footer");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -223,6 +233,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Local settings",
                 get() {
                     const value = this.getDataValue("local");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -235,6 +247,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Subscription details",
                 get() {
                     const value = this.getDataValue("sub");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -247,6 +261,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Supported countries",
                 get() {
                     const value = this.getDataValue("countries");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -259,6 +275,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Lottery configuration",
                 get() {
                     const value = this.getDataValue("lottery");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -271,6 +289,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Tax settings",
                 get() {
                     const value = this.getDataValue("tax");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -293,6 +313,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Theme configuration",
                 get() {
                     const value = this.getDataValue("theme");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -305,6 +327,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Hyper settings",
                 get() {
                     const value = this.getDataValue("hyper");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -317,6 +341,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Avocado settings",
                 get() {
                     const value = this.getDataValue("avocado");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -329,6 +355,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Ribbon display settings",
                 get() {
                     const value = this.getDataValue("ribbon");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -341,6 +369,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Marketplace configuration",
                 get() {
                     const value = this.getDataValue("marketplace");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -397,6 +427,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Metadata for SEO",
                 get() {
                     const value = this.getDataValue("meta");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -409,6 +441,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Agency metadata",
                 get() {
                     const value = this.getDataValue("agency_meta");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -421,6 +455,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Translations data",
                 get() {
                     const value = this.getDataValue("translations");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -433,6 +469,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Filter configurations",
                 get() {
                     const value = this.getDataValue("filters");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {
@@ -445,6 +483,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Stores arrays for categories, tags, and limit to load extra products in category",
                 get() {
                     const value = this.getDataValue("engine");
+                    if (typeof value === "object") return value;
+
                     return value ? JSON.parse(value) : null;
                 },
                 set(value) {

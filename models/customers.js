@@ -56,6 +56,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Customer segments in JSON format",
                 get() {
                     const value = this.getDataValue("segments");
+                    if (typeof value === "object") return value;
+
                     try {
                         return value ? JSON.parse(value) : null;
                     } catch (e) {
@@ -72,6 +74,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Customer address in JSON format",
                 get() {
                     const value = this.getDataValue("address");
+                    if (typeof value === "object") return value;
+
                     try {
                         return value ? JSON.parse(value) : null;
                     } catch (e) {
@@ -88,6 +92,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Customer billing info in JSON format",
                 get() {
                     const value = this.getDataValue("billing");
+                    if (typeof value === "object") return value;
+
                     try {
                         return value ? JSON.parse(value) : null;
                     } catch (e) {
@@ -174,6 +180,8 @@ module.exports = (sequelize, DataTypes) => {
                 comment: "Meta information in JSON",
                 get() {
                     const value = this.getDataValue("meta");
+                    if (typeof value === "object") return value;
+
                     try {
                         return value ? JSON.parse(value) : null;
                     } catch (e) {
