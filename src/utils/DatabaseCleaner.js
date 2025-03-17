@@ -1,28 +1,33 @@
-const { KeyValue, Product, Shop, Category, User } = require("../../models");
+const models = require("../../models");
 const { Op } = require("sequelize");
-const {query} = require("express");
+const { query } = require("express");
+const tableConfig = require("../../src/TableConfig");
 
 class DatabaseCleaner {
-    /**
-     * Clears specific database records.
-     */
     static async clear() {
         try {
             console.log("🚀 Starting database cleanup...");
-
-            // Disable foreign key checks for safe deletion
             await query("SET FOREIGN_KEY_CHECKS = 0");
 
-            // Perform all deletions in parallel
-            await Promise.all([
-                KeyValue.destroy({
-                    where: { key: { [Op.like]: "%_updated_at" } } // Delete only keys ending in "_updated_at"
-                }),
-                Product.destroy({ where: {} }),
-                Category.destroy({ where: {} }),
-            ]);
+            const destroyPromises = [];
 
-            // Re-enable foreign key checks
+            // Special case for KeyValue
+            destroyPromises.push(
+                models.KeyValue.destroy({
+                    where: { key: { [Op.like]: "%_updated_at" } }
+                })
+            );
+
+            // Handle all other models
+            const modelNames = tableConfig.getAllResources();
+            modelNames.forEach(modelName => {
+                // Skip KeyValue as it's handled separately
+                if ( models[modelName]) {
+                    destroyPromises.push(models[modelName].destroy({ where: {} }));
+                }
+            });
+
+            await Promise.all(destroyPromises);
             await query("SET FOREIGN_KEY_CHECKS = 1");
 
             console.log("✅ Database cleanup completed successfully.");

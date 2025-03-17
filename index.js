@@ -10,7 +10,6 @@ app.use(express.urlencoded({extended: true})); // Parse URL-encoded form data
 
 
 require("./db");
-const syncProducts = require("./syncProducts");  // Import the syncProducts function
 
 
 // Set EJS as the view engine
@@ -24,15 +23,17 @@ app.get('/', (req, res) => {
         port: process.env.DB_PORT,
         database: process.env.DB_NAME
     };
-    res.render('layout', {DB_CONFIG});
+    // Import TableConfig in your route file
+    const tableConfig = require('./src/TableConfig');
+
+    res.render('layout', {DB_CONFIG,
+        resources: JSON.stringify(tableConfig.getAllResources()
+        )
+    });
 });
 
 
-// Route to trigger sync products
-app.get('/sync-products', async (req, res) => {
-    const result = await syncProducts(); // Call the syncProducts function
-    res.json(result); // Send back the result of the sync
-});
+
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
@@ -43,6 +44,7 @@ const adminRoutes = require("./routes/admin");
 const customersRoutes = require("./routes/customers");
 const shopDataRoutes = require("./routes/shop-data");
 const databaseRoutes = require('./routes/database');
+const productVariantsRoutes = require('./routes/product-variants');
 
 
 // ✅ Use Routes
@@ -55,6 +57,7 @@ app.use("/admin", adminRoutes);
 app.use("/customers", customersRoutes);
 app.use("/shop-data", shopDataRoutes);
 app.use("/database", databaseRoutes);
+app.use("/product-variants", productVariantsRoutes);
 
 
 const progressRouter = require('./routes/progress');

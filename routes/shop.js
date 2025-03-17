@@ -21,7 +21,8 @@ router.post("/fetch-shop", async (req, res) => {
 
         // Check if the shop ID has changed from the previous value
         const oldShopEntry = await KeyValue.findOne({ where: { key: "selected_shop_id" } });
-        if (oldShopEntry && oldShopEntry.value !== shop_id) {
+        if (oldShopEntry && oldShopEntry.value.toString() !== shop_id.toString()) {
+            console.log("🔄 Shop ID has changed. Clearing data...",oldShopEntry.value,'->',shop_id);
             // If shop ID has changed, remove all data in products, shops, and categories tables
             await DatabaseCleaner.clear();
             await Shop.destroy({ where: {} });

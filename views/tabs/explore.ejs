@@ -11,10 +11,10 @@
             <div class="flex space-x-3">
                 <select id="explore-table-selector" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-4 py-2">
                     <option value="" selected disabled>Select a table</option>
-                    <option value="products">Products</option>
-                    <option value="categories">Categories</option>
-                    <option value="customers">Customers</option>
-                    <option value="shop_data">Shop Data</option>
+                    <% const tableResources = JSON.parse(resources); %>
+                    <% tableResources.forEach(resource => { %>
+                        <option value="<%= resource.id %>"><%= resource.name %></option>
+                    <% }); %>
                 </select>
                 <div class="relative">
                     <input id="explore-search" type="text" placeholder="Search..." class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-4 py-2 pl-9">
