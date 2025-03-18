@@ -87,8 +87,12 @@ class ResourceFetcher {
                 }
             );
 
+
             if (firstResponse.data.error) {
                 throw new Error(firstResponse.data.error_msg);
+            }
+            if(!firstResponse.data[this.responseKey]){
+                throw new Error(`Invalid response key! We cant find value for '${this.responseKey}'`);
             }
 
             const firstBatch = firstResponse.data[this.responseKey];

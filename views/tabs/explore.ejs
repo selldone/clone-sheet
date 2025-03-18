@@ -349,7 +349,7 @@
                     contentAdded = true;
                 }
                 // Handle dates
-                else if (typeof value === 'string' && (column.includes('_at') || column.includes('date')) && value) {
+                else if (typeof value === 'string' && (column.includes('_at') || column.includes('date') || column.includes('_start') || column.includes('_end')) && value) {
                     try {
                         td.textContent = new Date(value).toLocaleString();
                         contentAdded = true;

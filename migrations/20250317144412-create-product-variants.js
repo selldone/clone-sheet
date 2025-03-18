@@ -3,7 +3,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // First create the table without the self-referencing constraint
-    await queryInterface.createTable('product_variant', {
+    await queryInterface.createTable('product_variants', {
       id: {
         type: Sequelize.BIGINT.UNSIGNED,
         primaryKey: true,
@@ -149,15 +149,15 @@ module.exports = {
 
 
     // Add indexes
-    await queryInterface.addIndex('product_variant', ['shop_id']);
-    await queryInterface.addIndex('product_variant', ['product_id']);
-    await queryInterface.addIndex('product_variant', ['sku']);
-    await queryInterface.addIndex('product_variant', ['parent_id']);
-    await queryInterface.addIndex('product_variant', ['enable']);
-    await queryInterface.addIndex('product_variant', ['deleted_at']);
+    await queryInterface.addIndex('product_variants', ['shop_id']);
+    await queryInterface.addIndex('product_variants', ['product_id']);
+    await queryInterface.addIndex('product_variants', ['sku']);
+    await queryInterface.addIndex('product_variants', ['parent_id']);
+    await queryInterface.addIndex('product_variants', ['enable']);
+    await queryInterface.addIndex('product_variants', ['deleted_at']);
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('product_variant');
+    await queryInterface.dropTable('product_variants');
   }
 };

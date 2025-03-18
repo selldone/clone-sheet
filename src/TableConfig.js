@@ -14,14 +14,16 @@ class TableConfig {
                 modelName: "Category",
                 displayName: "Categories",
                 icon: "folder",
-                endpoint: '/categories/fetch-categories'
+                endpoint: '/categories/fetch-categories',
+                table: "categories"
             },
 
             "products": {
                 modelName: "Product",
                 displayName: "Products",
                 icon: "package",
-                endpoint: '/products/fetch-products'
+                endpoint: '/products/fetch-products',
+                table: "products"
             },
 
 
@@ -29,21 +31,24 @@ class TableConfig {
                 modelName: "ProductVariant",
                 displayName: "Product Variants",
                 icon: "layers",
-                endpoint: '/product-variants/fetch-product-variants'
+                endpoint: '/product-variants/fetch-product-variants',
+                table: "product_variants"
             },
 
             "customers": {
                 modelName: "Customer",
                 displayName: "Customers",
                 icon: "users",
-                endpoint: '/customers/fetch-customers'
+                endpoint: '/customers/fetch-customers',
+                table: "customers"
             },
 
             "shop-data": {
                 modelName: "ShopData",
                 displayName: "Shop Data",
                 icon: "shopping-bag",
-                endpoint: '/shop-data/fetch-shop-data'
+                endpoint: '/shop-data/fetch-shop-data',
+                table: "shop_data"
             },
 
 

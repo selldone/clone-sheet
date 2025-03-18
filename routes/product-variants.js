@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {Variant} = require("../models");
+const {ProductVariant} = require("../models");
 const ResourceFetcher = require("../src/utils/ResourceSync");
 
 
@@ -8,7 +8,7 @@ const ResourceFetcher = require("../src/utils/ResourceSync");
 
 router.post("/fetch-product-variants", (new ResourceFetcher({
     resourceType: "product-variants",
-    Model: Variant
+    Model: ProductVariant
 })).createHandler());
 
 

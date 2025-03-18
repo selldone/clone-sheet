@@ -3,37 +3,30 @@ const express = require("express");
 const router = express.Router();
 const { Sequelize } = require("sequelize");
 const db = require("../models");
+const {tables} = require("../src/TableConfig");
 
-// Direct mapping between table names and model names
-const TABLE_MODEL_MAP = {
-    "products": "Product",
-    "categories": "Category",
-    "customers": "Customer",
-    "shop_data": "ShopData",
-    "key_values": "KeyValue",
-    // Add any additional mappings here
-};
+
 
 // Get table data dynamically
-router.get("/get-table-data/:tableName", async (req, res) => {
+router.get("/get-table-data/:key", async (req, res) => {
     try {
-        const { tableName } = req.params;
+        const { key } = req.params;
 
-        // Security check - only allow specific tables to be accessed
-        const allowedTables = Object.keys(TABLE_MODEL_MAP);
 
-        // Convert kebab-case to snake_case if needed
-        const normalizedTable = tableName.replace(/-/g, "_");
 
-        if (!allowedTables.includes(normalizedTable)) {
+
+        // Security check - only allow tables defined in TableConfig
+        const allowedTables = Object.keys(tables);
+
+        if (!allowedTables.includes(key)) {
             return res.status(403).json({
                 success: false,
-                message: "Access denied to this table"
+                message: `Access denied to this table! ${key} not found in TableConfig`
             });
         }
 
         // Get model name from mapping
-        const modelName = TABLE_MODEL_MAP[normalizedTable];
+        const modelName = tables[key].modelName;
         const Model = db[modelName];
 
         if (!Model) {
@@ -57,7 +50,7 @@ router.get("/get-table-data/:tableName", async (req, res) => {
 
         // Get column information first
         const columnInfo = await db.sequelize.query(
-            `SHOW COLUMNS FROM \`${normalizedTable}\``,
+            `SHOW COLUMNS FROM \`${tables[key].table}\``,
             { type: db.sequelize.QueryTypes.SELECT }
         );
 
