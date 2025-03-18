@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %></title>
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; 
+      max-width: 750px; 
+      margin: 0 auto; 
+      padding: 3rem 2rem;
+      color: #1d1d1f;
+      line-height: 1.5;
+      background-color: #fafafa;
+    }
+    
+    h1 { 
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .form-container {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+      padding: 2rem;
+    }
+    
+    .form-group { 
+      margin-bottom: 1.5rem; 
+    }
+    
+    label { 
+      display: block; 
+      margin-bottom: 0.5rem; 
+      font-weight: 500;
+      color: #1d1d1f;
+      font-size: 0.95rem;
+    }
+    
+    input[type="text"], input[type="password"], input[type="number"] { 
+      width: 100%; 
+      padding: 12px 15px; 
+      border: 1px solid #d2d2d7; 
+      border-radius: 12px; 
+      font-size: 1rem;
+      color: #1d1d1f;
+      transition: border-color 0.2s ease;
+      box-sizing: border-box;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #0071e3;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+    }
+    
+    button { 
+      background: #0071e3; 
+      color: white; 
+      border: none; 
+      padding: 12px;
+      border-radius: 980px; 
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-weight: 500;
+      width: 100%;
+      margin-top: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    button:hover {
+      background: #0077ed;
+      transform: translateY(-1px);
+    }
+    
+    .section {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #d2d2d7;
+      padding-bottom: 1rem;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      color: #1d1d1f;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+    
+    .error { 
+      background: #fef1f2; 
+      border-left: 4px solid #ef4444; 
+      padding: 1rem; 
+      border-radius: 8px; 
+      margin-bottom: 1.5rem;
+      color: #b91c1c;
+    }
+    
+    .note {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f5f5f7;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #6e6e73;
+    }
+  </style>
+</head>
+<body>
+  <h1><%= title %></h1>
+
+  <% if (error) { %>
+    <div class="error">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <form method="post" action="/setup">
+    <div class="form-container">
+      <div class="section">
+        <div class="section-title">Database Configuration</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host">Host</label>
+            <input type="text" id="host" name="host" value="<%= config.host %>" required>
+          </div>
+          <div class="form-group">
+            <label for="port">Port</label>
+            <input type="number" id="port" name="port" value="<%= config.port %>" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" value="<%= config.username %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" value="<%= config.password %>">
+        </div>
+
+        <div class="form-group">
+          <label for="database">Database Name</label>
+          <input type="text" id="database" name="database" value="<%= config.database %>" required>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Application Settings</div>
+        <div class="form-group">
+          <label for="appPort">Application Port</label>
+          <input type="number" id="appPort" name="appPort" value="<%= config.appPort %>" required>
+        </div>
+      </div>
+
+      <button type="submit">Connect & Initialize</button>
+    </div>
+    
+    <div class="note">
+      This setup will connect to your database, create it if needed, and run migrations before starting the application.
+    </div>
+  </form>
+</body>
+</html>
