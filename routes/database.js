@@ -1,17 +1,15 @@
 // routes/database.js
 const express = require("express");
 const router = express.Router();
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const db = require("../models");
 const {tables} = require("../src/TableConfig");
-
-
 
 // Get table data dynamically
 router.get("/get-table-data/:key", async (req, res) => {
     try {
         const { key } = req.params;
-
+        const search = req.query.search || '';
 
 
 
@@ -40,15 +38,41 @@ router.get("/get-table-data/:key", async (req, res) => {
         const limit = parseInt(req.query.limit) || 100;
         const page = parseInt(req.query.page) || 1;
 
+        // Get sort parameters
+        const sortField = req.query.sortField || 'id';
+        const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC';
+
+        // Build search conditions if search parameter is provided
+        let whereClause = {};
+        if (search) {
+            // Get searchable string fields from the model
+            const stringAttributes = Object.keys(Model.rawAttributes).filter(
+                attr => {
+                    const type = Model.rawAttributes[attr].type;
+                    return type &&
+                        ['STRING', 'TEXT', 'CHAR', 'VARCHAR'].includes(type.key || type.constructor.key);
+                }
+            );
+
+            if (stringAttributes.length > 0) {
+                whereClause[Op.or] = stringAttributes.map(field => ({
+                    [field]: { [Op.like]: `%${search}%` }
+                }));
+            }
+        }
+
+        // Fetch filtered data
         const rows = await Model.findAll({
+            where: whereClause,
             limit,
             offset: (page - 1) * limit,
-            order: [['id', 'DESC']]
+            order: [[sortField, sortOrder]]
         });
 
-        const count = await Model.count();
+        // Get total count with the same filters
+        const count = await Model.count({ where: whereClause });
 
-        // Get column information first
+        // Get column information
         const columnInfo = await db.sequelize.query(
             `SHOW COLUMNS FROM \`${tables[key].table}\``,
             { type: db.sequelize.QueryTypes.SELECT }
@@ -57,32 +81,25 @@ router.get("/get-table-data/:key", async (req, res) => {
         // Get ordered column names
         const columns = columnInfo.map(col => col.Field);
 
-
         // Reorder to put 'icon' after 'id' if it exists
         const iconIndex = columns.findIndex(col => col === 'icon');
         if (iconIndex !== -1) {
-            // Remove 'icon' from its current position
             columns.splice(iconIndex, 1);
-
-            // Find the position of 'id' column
             const idIndex = columns.findIndex(col => col === 'id');
-
-            // If 'id' exists, insert 'icon' right after it
             if (idIndex !== -1) {
                 columns.splice(idIndex + 1, 0, 'icon');
             } else {
-                // If 'id' doesn't exist, put 'icon' at the beginning
                 columns.unshift('icon');
             }
         }
-
-
 
         return res.json({
             success: true,
             columns,
             rows: rows.map(row => row.toJSON()),
-            totalRecords: count
+            totalRecords: count,
+            currentPage: page,
+            totalPages: Math.ceil(count / limit)
         });
 
     } catch (error) {
@@ -93,8 +110,5 @@ router.get("/get-table-data/:key", async (req, res) => {
         });
     }
 });
-
-
-
 
 module.exports = router;
