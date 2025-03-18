@@ -1,6 +1,12 @@
 # Clone Sheet
 
-Clone Sheet is a tool that allows you to create a clone of your store's data from Selldone into an SQL database (MariaDB or MySQL). This data can then be used for AI automation, accounting migrations, or integration with other software solutions.
+![Selldone](https://img.shields.io/badge/type-Clone--Sheet-f39f37?style=flat&label=Selldone&labelColor=%23567&color=%23000)
+[![GitHub](https://img.shields.io/badge/GitHub-clone--sheet-blue?style=flat&logo=github)](https://github.com/selldone/clone-sheet)
+[![npm version](https://img.shields.io/npm/v/@selldone/clone-sheet.svg?style=flat-square)](https://www.npmjs.com/package/@selldone/clone-sheet)
+[![npm downloads](https://img.shields.io/npm/dm/@selldone/clone-sheet.svg?style=flat-square)](https://www.npmjs.com/package/@selldone/clone-sheet)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+
+Clone Sheet is a tool that allows you to create a clone of your store's data from [Selldone](https://selldone.com) into an SQL database (MariaDB or MySQL). This data can then be used for AI automation, accounting migrations, or integration with other software solutions.
 
 ## Features
 - Clones store data from Selldone into a structured SQL database.
@@ -71,8 +77,11 @@ docker run -d \
   -p 8080:8080 \
   nocodb/nocodb:latest
 ```
+![img.png](_doc/docker-nocodb.png)
+Now you can open NocoDB in your browser at `http://localhost:8080`.
 
 Once running, set the SQL host to `host.docker.internal` and port `3306` (or the correct port for your database).
+![img.png](_doc/nocodb-view.png)
 
 ---
 
