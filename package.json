@@ -1,6 +1,9 @@
 {
-  "name": "clone-sheet",
+  "name": "@selldone/clone-sheet",
   "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "A web-based database exploration and visualization tool",
   "main": "index.js",
   "scripts": {
@@ -15,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pajuhaan/database-explorer.git"
+    "url": "git+https://github.com/selldone/clone-sheet.git"
   },
   "keywords": [
     "database",
