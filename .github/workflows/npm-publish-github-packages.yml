@@ -1,4 +1,4 @@
-name: Auto-Version and Publish to npm
+name: Publish to Github
 
 on:
   push:
