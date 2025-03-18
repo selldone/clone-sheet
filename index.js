@@ -26,13 +26,12 @@ app.get('/', (req, res) => {
     // Import TableConfig in your route file
     const tableConfig = require('./src/TableConfig');
 
-    res.render('layout', {DB_CONFIG,
+    res.render('layout', {
+        DB_CONFIG,
         resources: JSON.stringify(tableConfig.getAllResources()
         )
     });
 });
-
-
 
 
 const authRoutes = require("./routes/auth");
@@ -45,6 +44,7 @@ const customersRoutes = require("./routes/customers");
 const shopDataRoutes = require("./routes/shop-data");
 const databaseRoutes = require('./routes/database');
 const productVariantsRoutes = require('./routes/product-variants');
+const meRoutes = require('./routes/me');
 
 
 // ✅ Use Routes
@@ -58,6 +58,7 @@ app.use("/customers", customersRoutes);
 app.use("/shop-data", shopDataRoutes);
 app.use("/database", databaseRoutes);
 app.use("/product-variants", productVariantsRoutes);
+app.use("/me", meRoutes);
 
 
 const progressRouter = require('./routes/progress');

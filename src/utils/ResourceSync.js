@@ -10,7 +10,7 @@ class ResourceFetcher {
         this.singularName = options.singularName || this.resourceType.slice(0, -1);
         this.apiPath = options.apiPath || this.resourceType;
         this.responseKey = options.responseKey || this.resourceType;
-        this.limit = options.limit || 50;
+        this.limit = options.limit || 100;
         this.titleField = options.titleField || "title";
     }
 
