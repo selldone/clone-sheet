@@ -28,18 +28,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Auto-version based on commits
-        id: version-bump
-        uses: phips28/gh-action-bump-version@v10.1.1
-        with:
-          tag-prefix: 'v'
-          minor-wording: 'feat,feature'
-          major-wording: 'BREAKING,major'
-          patch-wording: 'fix,patch'
-          commit-message: 'ci: bump version to {{version}} [skip ci]'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish to npm
         if: steps.version-bump.outputs.newTag != ''
         run: npm publish --access=public
