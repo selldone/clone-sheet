@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clone Sheet - Have Your Business Data on Your Device</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Global Styles & Reset */
+        :root {
+            --primary-color: #007AFF;
+            --primary-dark: #0056b3;
+            --text-dark: #1d1d1f;
+            --text-medium: #424245;
+            --text-light: #86868b;
+            --background-light: #f5f5f7;
+            --border-color: #d2d2d7;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            color: var(--text-dark);
+            background-color: white;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(210, 210, 215, 0.3);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+        }
+
+        .nav-links li a {
+            color: var(--text-medium);
+            font-weight: 500;
+            font-size: 15px;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        .nav-links li a:hover {
+            color: var(--text-dark);
+        }
+
+        .nav-links li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transform: scaleX(0);
+            transition: var(--transition);
+        }
+
+        .nav-links li a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .mobile-toggle {
+            display: none;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #f5f5f7 0%, #e3e3e8 100%);
+            padding: 160px 0 80px;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #007AFF 0%, #00C3FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-medium);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            color: white;
+        }
+
+        .btn i {
+            margin-left: 8px;
+        }
+
+        .hero-image {
+            max-width: 800px;
+            margin: 48px auto 0;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Feature badges */
+        .feature-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 32px auto;
+            max-width: 800px;
+        }
+
+        .badge {
+            background-color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-medium);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Sections */
+        section {
+            padding: 80px 0;
+        }
+
+        section:nth-child(even) {
+            background-color: var(--background-light);
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .section-description {
+            font-size: 18px;
+            color: var(--text-medium);
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+
+        /* Steps Section */
+        .steps {
+            counter-reset: step-counter;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            margin-bottom: 64px;
+        }
+
+        .step:nth-child(even) {
+            direction: rtl;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-content {
+            direction: ltr;
+        }
+
+        .step-image {
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .step-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .step h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .step h3::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: var(--primary-color);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Code Block */
+        .code-block {
+            background-color: #1d1f21;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin-top: 16px;
+            margin-bottom: 24px;
+        }
+
+        .code-title {
+            color: #e6db74;
+            margin-bottom: 8px;
+        }
+
+        /* Tables */
+        .table-container {
+            margin: 32px 0;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        table th {
+            background-color: #f5f5f7;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table td {
+            padding: 16px;
+            vertical-align: top;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table ul {
+            padding-left: 20px;
+        }
+
+        table li {
+            margin-bottom: 8px;
+        }
+
+        table li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin: 48px 0;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--text-dark);
+            color: white;
+            padding: 48px 0 24px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .footer-links a {
+            color: #e5e5e7;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .copyright {
+            color: #86868b;
+            font-size: 14px;
+            margin-top: 24px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 960px) {
+            .step {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .step:nth-child(even) {
+                direction: ltr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .section-description {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .mobile-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                padding: 24px;
+                background-color: white;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            section {
+                padding: 48px 0;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header / Navigation -->
+<header>
+    <div class="container">
+        <nav>
+            <a href="#" class="logo">Clone Sheet</a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#steps">Steps</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#why-clone">Why Clone?</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- Mobile Menu (hidden by default) -->
+<div class="mobile-menu" id="mobile-menu" style="display: none;">
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#steps">Steps</a>
+    <a href="#usage">Usage</a>
+    <a href="#why-clone">Why Clone?</a>
+</div>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Clone Sheet</h1>
+            <p>Have your Selldone business data on your device for analytics, AI integration, and custom reporting</p>
+            <a href="https://github.com/selldone/clone-sheet" class="btn" target="_blank">
+                View on GitHub <i class="fab fa-github"></i>
+            </a>
+
+            <div class="feature-badges">
+                <span class="badge"><i class="fas fa-database"></i> MySQL Support</span>
+                <span class="badge"><i class="fas fa-robot"></i> AI Integration</span>
+                <span class="badge"><i class="fas fa-chart-line"></i> Custom Analytics</span>
+                <span class="badge"><i class="fas fa-sync"></i> Data Sync</span>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/explorer.png" alt="Clone Sheet Explorer">
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about">
+    <div class="container">
+        <h2 class="section-title">About Clone Sheet</h2>
+        <p class="section-description">
+            Clone Sheet is a powerful tool that creates a clone of your Selldone store data into an SQL database, enabling advanced analytics, custom integrations, and business intelligence.
+        </p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="feature-title">SQL Database</h3>
+                <p>Store your business data in MariaDB or MySQL for seamless integration with other systems.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="feature-title">AI Automation</h3>
+                <p>Leverage your data for machine learning models and AI-powered business insights.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <h3 class="feature-title">Data Migration</h3>
+                <p>Easily migrate your business data to other systems or create backups.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="feature-title">Custom Analytics</h3>
+                <p>Build custom reports and dashboards using your preferred BI tools.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features">
+    <div class="container">
+        <h2 class="section-title">Key Features</h2>
+        <p class="section-description">
+            Clone Sheet provides everything you need to work with your business data locally.
+        </p>
+
+        <ul>
+            <li>Clone store data from Selldone into a structured SQL database</li>
+            <li>Support for both MariaDB and MySQL databases</li>
+            <li>Simple setup process with guided configuration</li>
+            <li>User-friendly interface for data synchronization</li>
+            <li>Integration with data visualization tools</li>
+            <li>Secure token-based authentication with Selldone API</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Steps Section -->
+<section id="steps" class="steps">
+    <div class="container">
+        <h2 class="section-title">Getting Started</h2>
+        <p class="section-description">
+            Follow these simple steps to set up Clone Sheet and start working with your business data.
+        </p>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Database Setup</h3>
+                <p>To use Clone Sheet, you first need to set up a MariaDB or MySQL database on your local machine or server.</p>
+                <a href="https://mariadb.org/download/" target="_blank" class="btn">Download MariaDB</a>
+
+                <div class="code-block">
+                    <div class="code-title">// Windows, macOS, or Linux</div>
+                    # Follow the installer instructions<br>
+                    # Create a database user (optional)<br>
+                    # Make sure the database service is running
+                </div>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/setup-run.png" alt="Database Setup">
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Clone Project</h3>
+                <p>Clone the repository to your local machine and install the required dependencies.</p>
+
+                <div class="code-block">
+                    <div class="code-title">// Using HTTPS</div>
+                    git clone https://github.com/selldone/clone-sheet.git<br>
+                    cd clone-sheet<br>
+                    npm install
+                </div>
+
+                <div class="code-block">
+                    <div class="code-title">// Using SSH</div>
+                    git clone git@github.com:selldone/clone-sheet.git<br>
+                    cd clone-sheet<br>
+                    npm install
+                </div>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/explorer.png" alt="Clone Project">
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Installation & Setup</h3>
+                <p>Run the setup script to configure your database connection. This will create the necessary tables and initialize your environment.</p>
+
+                <div class="code-block">
+                    node setup.js<br><br>
+                    npm start
+                </div>
+
+                <p>The server will run on <a href="http://localhost:3010" target="_blank">http://localhost:3010</a> or another available port.</p>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/setup-run.png" alt="Installation Setup">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Usage Section -->
+<section id="usage">
+    <div class="container">
+        <h2 class="section-title">Using Clone Sheet</h2>
+        <p class="section-description">
+            After setting up Clone Sheet, you can start connecting to your Selldone store and syncing data.
+        </p>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Create Access Token</h3>
+                <p>Click on the Create Access Token button, which will redirect you to Selldone. Select your shop, copy the Access Token and Shop ID, and enter them in the form.</p>
+                <p>Click <strong>Save & Connect</strong> to establish the connection.</p>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/setup.png" alt="Create Access Token">
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Sync Data</h3>
+                <p>Once connected, you'll see available data sources. Select which data you want to sync and initiate the synchronization process.</p>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/sync.png" alt="Sync Data">
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Explore Data</h3>
+                <p>After synchronization, you can access and explore your cloned data in the Explorer tab.</p>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/explorer.png" alt="Explore Data">
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-content">
+                <h3>Visualize with NocoDB (Optional)</h3>
+                <p>You can visualize your cloned data using NocoDB, an open-source database browser.</p>
+
+                <div class="code-block">
+                    docker run -d \<br>
+                    --name noco \<br>
+                    -v "$(pwd)"/nocodb:/usr/app/data/ \<br>
+                    -p 8080:8080 \<br>
+                    nocodb/nocodb:latest
+                </div>
+
+                <p>Open NocoDB at <a href="http://localhost:8080" target="_blank">http://localhost:8080</a> and set the SQL host to <strong>host.docker.internal</strong> and port <strong>3306</strong>.</p>
+            </div>
+            <div class="step-image">
+                <img src="https://raw.githubusercontent.com/selldone/clone-sheet/master/_doc/nocodb-view.png" alt="NocoDB">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Clone Section -->
+<section id="why-clone">
+    <div class="container">
+        <h2 class="section-title">Why Clone Your Data Locally?</h2>
+        <p class="section-description">
+            Having your business data on your device opens up numerous possibilities for customization, analysis, and integration.
+        </p>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Use Cases</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><strong>Advanced Analytics</strong></td>
+                    <td>
+                        <ul>
+                            <li>Connect to Power BI, Tableau, or Google Data Studio for custom dashboards</li>
+                            <li>Execute complex SQL queries to uncover hidden business trends</li>
+                            <li>Perform cohort analysis and customer lifetime value calculations</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Custom Automation</strong></td>
+                    <td>
+                        <ul>
+                            <li>Create sophisticated marketing campaigns based on purchase patterns</li>
+                            <li>Build personalized discount strategies for different customer segments</li>
+                            <li>Set up alerts and actions based on inventory or sales thresholds</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>AI Integration</strong></td>
+                    <td>
+                        <ul>
+                            <li>Feed your sales data to AI models for demand forecasting</li>
+                            <li>Create recommendation engines based on purchase history</li>
+                            <li>Develop ML models to predict customer churn and product popularity</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Data Security</strong></td>
+                    <td>
+                        <ul>
+                            <li>Keep a secure backup of your business data</li>
+                            <li>Control access to sensitive information</li>
+                            <li>Implement your own security protocols on top of Selldone's</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Integration</strong></td>
+                    <td>
+                        <ul>
+                            <li>Connect your store data with your ERP or CRM systems</li>
+                            <li>Build custom middleware solutions for specific business needs</li>
+                            <li>Integrate with third-party services not directly supported by Selldone</li>
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="footer-logo">Clone Sheet</div>
+        <p>A tool to clone your Selldone store data into a local SQL database.</p>
+        <div class="footer-links">
+            <a href="https://github.com/selldone/clone-sheet" target="_blank">GitHub</a>
+            <a href="https://github.com/selldone/clone-sheet/issues" target="_blank">Report Issues</a>
+            <a href="https://selldone.com" target="_blank">Selldone</a>
+            <a href="https://selldone.com/docs" target="_blank">Documentation</a>
+        </div>
+        <div class="copyright">
+            &copy; 2023 Clone Sheet. Open source under MIT License.
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Mobile menu toggle
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    mobileToggle.addEventListener('click', () => {
+        if (mobileMenu.style.display === 'none') {
+            mobileMenu.style.display = 'flex';
+            mobileToggle.innerHTML = '<i class="fas fa-times"></i>';
+        } else {
+            mobileMenu.style.display = 'none';
+            mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 70,
+                    behavior: 'smooth'
+                });
+
+                // Close mobile menu if open
+                if (mobileMenu.style.display === 'flex') {
+                    mobileMenu.style.display = 'none';
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
