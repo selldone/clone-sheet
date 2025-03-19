@@ -46,6 +46,7 @@ const databaseRoutes = require('./routes/database');
 const productVariantsRoutes = require('./routes/product-variants');
 const meRoutes = require('./routes/me');
 const basketsRoutes = require('./routes/baskets');
+const basketItemsRoutes = require('./routes/basket-items');
 
 
 // ✅ Use Routes
@@ -61,6 +62,7 @@ app.use("/database", databaseRoutes);
 app.use("/product-variants", productVariantsRoutes);
 app.use("/me", meRoutes);
 app.use("/baskets", basketsRoutes);
+app.use("/basket-items", basketItemsRoutes);
 
 
 const progressRouter = require('./routes/progress');

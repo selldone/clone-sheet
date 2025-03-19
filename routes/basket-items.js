@@ -1,13 +1,13 @@
 // routes/categories.js
 const express = require("express");
 const router = express.Router();
-const {Basket} = require("../models");
+const {BasketItem} = require("../models");
 const ResourceFetcher = require("../src/utils/ResourceSync");
 
 
-router.post("/fetch-baskets", (new ResourceFetcher({
-    resourceType: "baskets",
-    Model: Basket
+router.post("/fetch-basket-items", (new ResourceFetcher({
+    resourceType: "basket-items",
+    Model: BasketItem
 })).createHandler());
 
 module.exports = router;
