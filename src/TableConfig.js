@@ -50,6 +50,13 @@ class TableConfig {
                 endpoint: '/shop-data/fetch-shop-data',
                 table: "shop_data"
             },
+            "baskets":{
+                modelName: "Basket",
+                displayName: "Baskets",
+                icon: "shopping-cart",
+                endpoint: '/baskets/fetch-baskets',
+                table: "baskets"
+            }
 
 
         };
